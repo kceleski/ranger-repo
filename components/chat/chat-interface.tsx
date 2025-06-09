@@ -18,22 +18,31 @@ interface ChatInterfaceProps {
 export default function ChatInterface({ module, initialMessages = [] }: ChatInterfaceProps) {
   const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
     api: "/api/chat",
-    body: { module },
+    body: {
+      module,
+      voiceMode: true,
+    },
     initialMessages,
   })
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isRecording, setIsRecording] = useState(false)
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  // Simulate speech recognition (in a real app, you would use the Web Speech API)
+  // Optional: Trigger ElevenLabs playback if desired
+  useEffect(() => {
+    const lastAssistantMsg = messages[messages.length - 1]
+    if (lastAssistantMsg?.role === "assistant") {
+      speakWithElevenLabs(lastAssistantMsg.content)
+    }
+  }, [messages])
+
   const handleMicClick = () => {
     setIsRecording(!isRecording)
     if (!isRecording) {
-      // Simulate recording for 3 seconds
       setTimeout(() => {
         setIsRecording(false)
         handleInputChange({ target: { value: "Tell me about quantum computing" } } as any)
@@ -90,22 +99,13 @@ export default function ChatInterface({ module, initialMessages = [] }: ChatInte
 
               <div className="bg-gray-800 rounded-lg px-4 py-2">
                 <div className="flex space-x-1">
-                  <div
-                    className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"
-                    style={{ animationDelay: "0ms" }}
-                  ></div>
-                  <div
-                    className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
-                    style={{ animationDelay: "150ms" }}
-                  ></div>
-                  <div
-                    className="w-2 h-2 bg-pink-500 rounded-full animate-bounce"
-                    style={{ animationDelay: "300ms" }}
-                  ></div>
+                  <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                  <div className="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
                 </div>
               </div>
             </div>
-          )}
+          ))}
 
           {error && (
             <div className="bg-red-500/10 border border-red-500 text-red-500 rounded-lg p-4 text-sm">
@@ -174,4 +174,9 @@ export default function ChatInterface({ module, initialMessages = [] }: ChatInte
       </div>
     </div>
   )
+}
+
+function speakWithElevenLabs(text: string) {
+  // Placeholder function. Wire this to ElevenLabs API if voice playback is ready.
+  console.log("[TTS] Speaking:", text)
 }
